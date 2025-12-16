@@ -48,36 +48,52 @@
     </div>
     </div>
   </div>
-
-  <script>
-  const params = new URLSearchParams(location.search);
-  const isControl = params.has("control");
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const isController = params.has("control");
 
   const viewer = document.getElementById("viewer");
   const controller = document.getElementById("controller");
-  const chime = document.getElementById("chime");
 
-  const CONTROL_CODE = "SVP123"; // 🔐 CHANGE THIS
+  const CONTROLLER_ID = "SVP123"; // 🔐 CHANGE THIS TO YOUR OWN CODE
 
-  if (isControl) {
+  if (isController) {
     const entered = prompt("Enter controller access code:");
-    if (entered === CONTROL_CODE) {
+
+    if (entered === CONTROLLER_ID) {
       viewer.classList.add("hidden");
       controller.classList.remove("hidden");
     } else {
       alert("Access denied.");
+      // Stay in viewer mode
+      viewer.classList.remove("hidden");
+      controller.classList.add("hidden");
     }
   }
 
-  function update(title, text) {
-    document.getElementById("title").innerText = title;
-    document.getElementById("message").innerText = text;
-
-  
+  function setMessage(title, text) {
+    const data = {
+      title: title,
+      text: text,
+      time: new Date().toLocaleTimeString()
+    };
+    localStorage.setItem("eventMessage", JSON.stringify(data));
+    alert("Message updated for guests.");
   }
 
-</script>
+  function loadMessage() {
+    const data = JSON.parse(localStorage.getItem("eventMessage"));
+    if (!data) return;
 
+    document.getElementById("title").innerText = data.title;
+    document.getElementById("message").innerText = data.text;
+    document.getElementById("footer").innerText =
+      "Updated at " + data.time;
+  }
+
+  loadMessage();
+  setInterval(loadMessage, 3000);
+</script>
   <script src="script.js"></script>
 </body>
 </html>
