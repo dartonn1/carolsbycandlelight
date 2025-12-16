@@ -71,16 +71,17 @@
     }
   }
 
-  function setMessage(title, text) {
+  window.setMessage = function(title, text) {
     const data = {
       title: title,
       text: text,
       time: new Date().toLocaleTimeString()
     };
     localStorage.setItem("eventMessage", JSON.stringify(data));
-    alert("Message updated for guests.");
-  }
+    alert("Message updated for guests");
+  };
 
+    
   function loadMessage() {
     const data = JSON.parse(localStorage.getItem("eventMessage"));
     if (!data) return;
@@ -97,5 +98,6 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
