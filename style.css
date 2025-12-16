@@ -1,0 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
+
+@keyframes fall {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    top: 100vh;
+    opacity: 1;
+  }
+}
+@keyframes sway {
+  0% {
+    margin-left: 0;
+  }
+  25% {
+    margin-left: 50px;
+  }
+  50% {
+    margin-left: -50px;
+  }
+  75% {
+    margin-left: 50px;
+  }
+  100% {
+    margin-left: 0;
+  }
+}
+
+#snow-container {  
+    z-index: 4;
+  height: 100vh;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  transition: opacity 500ms;
+  width: 100%;
+}
+.snow {
+  animation: fall ease-in infinite, sway ease-in-out infinite;
+  color: skyblue;
+  position: absolute;
+}
+
+    body {
+        background-color: burlywood;
+      font-family: 'Google Sans', sans-serif;
+      color: white;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    h2 {
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 50px;
+    }
+
+     h1 {
+    padding-top: 50px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      font-size: 50px;
+    }
+    p {
+      max-width: 600px;
+      margin: 0 auto 25px;
+      line-height: 1.6;
+      font-size: 25px;
+    }
+    .small {
+      font-size: 0.9em;
+      color: white;
+    }
+    .controls {
+        z-index: 9;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    button {
+        z-index: 9;
+      display: block;
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 12px;
+      font-size: 1em;
+      border: none;
+      border-radius: 6px;
+      background: #ffffff;
+      font-family: 'Google Sans', sans-serif;
+      color: black;
+      cursor: pointer;
+      transition: 0.3s background;
+    }
+    button:hover {
+      background: black;
+      border: solid 1px white;
+      color: white;
+      
+    }
+    .hidden {
+      display: none;
+    }
+
+    .header {
+        align-items: center;
+        align-self: center;
+        background-color: transparent;
+        z-index: 5;
+        padding: 12px;
+        color: white
+    }
+
+
+    .background {
+        z-index: 1;
+        position: relative;
+        height: 100vh;
+        background: url('4X1A5738.jpg') no-repeat center center/cover;
+    }
+
+    /* Overlay layer */
+    .background::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8); /* Black overlay with 50% opacity */
+        z-index: -1;
+    }
+
+div.controller {
+    z-index: 19;
+}

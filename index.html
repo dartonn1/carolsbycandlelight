@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <div class="background">
+  <meta charset="UTF-8">
+  <title>Event Message</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="style.css" rel="stylesheet">
+  
+</head>
+<body>
+  
+  <!-- VIEWER SCREEN -->
+  <div id="viewer">
+    <div id="snow-container">
+        <div class="header">
+    <h2 id="title">Welcome</h2>
+    <p id="message">Please wait…</p>
+    <p class="small" id="footer"></p>
+    </div>
+    </div>
+  </div>
+  <!-- CONTROLLER SCREEN -->
+  <div id="controller" class="hidden">
+    <h1>Site Controller</h1>
+    <p class="small">Tap a button to update what guests see.</p>
+    <div class="controls">
+      <button onclick="setMessage('Arrival',
+        'Please collect any goods from our stalls and head to your checkout area.')">
+        Arrival
+      </button>
+      <button onclick="setMessage('Find Your Seats',
+        'Please begin finding your seats. We will be starting shortly.')">
+        Find Seats
+      </button>
+      <button onclick="setMessage('We Are Beginning',
+        'Thank you for being here. Please settle in as we begin.')">
+        About to Begin
+      </button>
+      <button onclick="setMessage('Prayer',
+        'Be still, and know that I am God. - Psalm 46:10')">
+        Prayer
+      </button>
+      <button onclick="setMessage('Thank You',
+        'Thank you for being part of this gathering. May peace go with you.')">
+        End
+      </button>
+    </div>
+    </div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const isController = params.has("control");
+    const viewer = document.getElementById("viewer");
+    const controller = document.getElementById("controller");
+
+
+    if (isController) {
+      viewer.classList.add("hidden");
+      controller.classList.remove("hidden");
+    }
+    function setMessage(title, text) {
+      const data = {
+        title: title,
+        text: text,
+        time: new Date().toLocaleTimeString()
+      };
+      localStorage.setItem("eventMessage", JSON.stringify(data));
+      alert("Message updated for guests.");
+    }
+    function loadMessage() {
+      const data = JSON.parse(localStorage.getItem("eventMessage"));
+      if (!data) return;
+      document.getElementById("title").innerText = data.title;
+      document.getElementById("message").innerText = data.text;
+      document.getElementById("footer").innerText =
+        "Updated at " + data.time;
+}
+    loadMessage();
+    setInterval(loadMessage, 3000);
+  </script>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
