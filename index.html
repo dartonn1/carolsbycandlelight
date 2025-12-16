@@ -52,12 +52,13 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
-  // 🔐 CONFIG — PASTE YOUR VALUES
+  // 🔐 CONFIG
   const SUPABASE_URL = "https://gmycaocgjaqwndcbdlmt.supabase.co";
   const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdteWNhb2NnamFxd25kY2JkbG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTExMTcsImV4cCI6MjA4MTQ4NzExN30.WihrqGDXzkG1BVxBdZ4dYO2cQVbX-7gqDufetcouh4Y";
-  const CONTROL_CODE = "SVP123";
+  const CONTROL_CODE = "4729";
 
-  const supabase = window.supabase.createClient(
+  // ✅ Rename client to avoid shadowing
+  const db = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
   );
@@ -78,23 +79,21 @@
     }
   }
 
-  // 🌍 GLOBAL for buttons
+  // 🌍 Make available to buttons
   window.setMessage = async function(title, text) {
-    await supabase
-      .from("event_state")
-      .insert([{ title, message: text }]);
+    await db.from("event_state").insert([
+      { title, message: text }
+    ]);
   };
 
-  // ⬇️ Load latest message
   async function loadMessage() {
-    const { data } = await supabase
+    const { data } = await db
       .from("event_state")
       .select("*")
       .order("updated_at", { ascending: false })
       .limit(1);
 
     if (!data || !data.length) return;
-
     updateUI(data[0]);
   }
 
@@ -107,9 +106,8 @@
 
   loadMessage();
 
-  // ⚡ REALTIME LISTENER
-  supabase
-    .channel("event-updates")
+  // ⚡ REALTIME
+  db.channel("event-updates")
     .on(
       "postgres_changes",
       { event: "INSERT", schema: "public", table: "event_state" },
@@ -121,6 +119,7 @@
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
