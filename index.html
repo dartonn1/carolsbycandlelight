@@ -48,56 +48,80 @@
     </div>
     </div>
   </div>
+
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
 <script>
+  // 🔐 CONFIG — PASTE YOUR VALUES
+  const SUPABASE_URL = "https://gmycaocgjaqwndcbdlmt.supabase.co";
+  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdteWNhb2NnamFxd25kY2JkbG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTExMTcsImV4cCI6MjA4MTQ4NzExN30.WihrqGDXzkG1BVxBdZ4dYO2cQVbX-7gqDufetcouh4Y";
+  const CONTROL_CODE = "SVP123";
+
+  const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+  );
+
   const params = new URLSearchParams(window.location.search);
   const isController = params.has("control");
 
   const viewer = document.getElementById("viewer");
   const controller = document.getElementById("controller");
 
-  const CONTROLLER_ID = "SVP123"; // 🔐 CHANGE THIS TO YOUR OWN CODE
-
   if (isController) {
     const entered = prompt("Enter controller access code:");
-
-    if (entered === CONTROLLER_ID) {
+    if (entered === CONTROL_CODE) {
       viewer.classList.add("hidden");
       controller.classList.remove("hidden");
     } else {
       alert("Access denied.");
-      // Stay in viewer mode
-      viewer.classList.remove("hidden");
-      controller.classList.add("hidden");
     }
   }
 
-  window.setMessage = function(title, text) {
-    const data = {
-      title: title,
-      text: text,
-      time: new Date().toLocaleTimeString()
-    };
-    localStorage.setItem("eventMessage", JSON.stringify(data));
-    alert("Message updated for guests");
+  // 🌍 GLOBAL for buttons
+  window.setMessage = async function(title, text) {
+    await supabase
+      .from("event_state")
+      .insert([{ title, message: text }]);
   };
 
-    
-  function loadMessage() {
-    const data = JSON.parse(localStorage.getItem("eventMessage"));
-    if (!data) return;
+  // ⬇️ Load latest message
+  async function loadMessage() {
+    const { data } = await supabase
+      .from("event_state")
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1);
 
-    document.getElementById("title").innerText = data.title;
-    document.getElementById("message").innerText = data.text;
+    if (!data || !data.length) return;
+
+    updateUI(data[0]);
+  }
+
+  function updateUI(d) {
+    document.getElementById("title").innerText = d.title;
+    document.getElementById("message").innerText = d.message;
     document.getElementById("footer").innerText =
-      "Updated at " + data.time;
+      "Updated at " + new Date(d.updated_at).toLocaleTimeString();
   }
 
   loadMessage();
-  setInterval(loadMessage, 3000);
+
+  // ⚡ REALTIME LISTENER
+  supabase
+    .channel("event-updates")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "event_state" },
+      payload => updateUI(payload.new)
+    )
+    .subscribe();
 </script>
+  
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
