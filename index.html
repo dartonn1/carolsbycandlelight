@@ -52,24 +52,25 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
-/* =====================
+/* =========================
    CONFIG
-===================== */
+========================= */
 const SUPABASE_URL = "https://gmycaocgjaqwndcbdlmt.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdteWNhb2NnamFxd25kY2JkbG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTExMTcsImV4cCI6MjA4MTQ4NzExN30.WihrqGDXzkG1BVxBdZ4dYO2cQVbX-7gqDufetcouh4Y";
-const CONTROL_CODE = "2707";
+const CONTROL_CODE = "4729";
+const POLL_INTERVAL = 3000; // ms
 
-/* =====================
-   CLIENT
-===================== */
+/* =========================
+   SUPABASE CLIENT
+========================= */
 const db = window.supabase.createClient(
   SUPABASE_URL,
   SUPABASE_KEY
 );
 
-/* =====================
-   MODE
-===================== */
+/* =========================
+   MODE DETECTION
+========================= */
 const params = new URLSearchParams(window.location.search);
 const isController = params.has("control");
 
@@ -86,15 +87,15 @@ if (isController) {
   }
 }
 
-/* =====================
-   SOUND (viewer only)
-===================== */
+/* =========================
+   CHIME (viewer only)
+========================= */
 const chime = new Audio("chime.mp3");
 chime.preload = "auto";
 
-/* =====================
+/* =========================
    CONTROLLER ACTION
-===================== */
+========================= */
 window.setMessage = async function(title, text) {
   const { error } = await db
     .from("event_state")
@@ -106,19 +107,20 @@ window.setMessage = async function(title, text) {
     .eq("id", 1);
 
   if (error) {
-    alert("Failed to update");
     console.error(error);
+    alert("Failed to update message");
   }
 };
 
-/* =====================
+/* =========================
    UI UPDATE
-===================== */
-function updateUI(data, playSound = false) {
+========================= */
+function updateUI(data, playSound) {
   document.getElementById("title").innerText = data.title;
   document.getElementById("message").innerText = data.message;
   document.getElementById("footer").innerText =
-    "Updated at " + new Date(data.updated_at).toLocaleTimeString();
+    "Updated at " +
+    new Date(data.updated_at).toLocaleTimeString();
 
   if (playSound) {
     chime.currentTime = 0;
@@ -126,28 +128,10 @@ function updateUI(data, playSound = false) {
   }
 }
 
-/* =====================
-   INITIAL LOAD
-===================== */
-async function loadInitial() {
-  const { data } = await db
-    .from("event_state")
-    .select("*")
-    .eq("id", 1)
-    .single();
-
-  if (data) updateUI(data);
-}
-
-loadInitial();
-
-/* =====================
-   REALTIME
-===================== */
-/* =====================
-   AUTO REFRESH (POLLING)
-===================== */
-let lastUpdate = null;
+/* =========================
+   POLLING LOGIC
+========================= */
+let lastUpdatedAt = null;
 
 async function pollForChanges() {
   const { data } = await db
@@ -158,20 +142,23 @@ async function pollForChanges() {
 
   if (!data) return;
 
-  if (lastUpdate !== data.updated_at) {
-    updateUI(data, lastUpdate !== null);
-    lastUpdate = data.updated_at;
+  if (lastUpdatedAt !== data.updated_at) {
+    updateUI(data, lastUpdatedAt !== null);
+    lastUpdatedAt = data.updated_at;
   }
 }
 
-// start polling
-setInterval(pollForChanges, 3000);
-  .subscribe();
+/* =========================
+   START
+========================= */
+pollForChanges();
+setInterval(pollForChanges, POLL_INTERVAL);
 </script>
   
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
