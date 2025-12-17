@@ -52,107 +52,118 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 <script>
-  /********************
-   * CONFIG
-   ********************/
-  const SUPABASE_URL = "https://gmycaocgjaqwndcbdlmt.supabase.co";
-  const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdteWNhb2NnamFxd25kY2JkbG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTExMTcsImV4cCI6MjA4MTQ4NzExN30.WihrqGDXzkG1BVxBdZ4dYO2cQVbX-7gqDufetcouh4Y";
-  const CONTROL_CODE = "2707";
+/* =====================
+   CONFIG
+===================== */
+const SUPABASE_URL = "https://gmycaocgjaqwndcbdlmt.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdteWNhb2NnamFxd25kY2JkbG10Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTExMTcsImV4cCI6MjA4MTQ4NzExN30.WihrqGDXzkG1BVxBdZ4dYO2cQVbX-7gqDufetcouh4Y";
+const CONTROL_CODE = "2707";
 
-  /********************
-   * SUPABASE CLIENT
-   ********************/
-  const db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-  );
+/* =====================
+   CLIENT
+===================== */
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_KEY
+);
 
-  /********************
-   * MODE (viewer / controller)
-   ********************/
-  const params = new URLSearchParams(window.location.search);
-  const isController = params.has("control");
+/* =====================
+   MODE
+===================== */
+const params = new URLSearchParams(window.location.search);
+const isController = params.has("control");
 
-  const viewer = document.getElementById("viewer");
-  const controller = document.getElementById("controller");
+const viewer = document.getElementById("viewer");
+const controller = document.getElementById("controller");
 
-  if (isController) {
-    const entered = prompt("Enter controller access code:");
-    if (entered === CONTROL_CODE) {
-      viewer.classList.add("hidden");
-      controller.classList.remove("hidden");
-    } else {
-      alert("Access denied.");
-    }
+if (isController) {
+  const entered = prompt("Enter controller access code:");
+  if (entered === CONTROL_CODE) {
+    viewer.classList.add("hidden");
+    controller.classList.remove("hidden");
+  } else {
+    alert("Access denied");
   }
+}
 
-  /********************
-   * CONTROLLER ACTION
-   ********************/
-  window.setMessage = async function(title, text) {
-    const { error } = await db.from("event_state").insert([
-      { title: title, message: text }
-    ]);
+/* =====================
+   SOUND (viewer only)
+===================== */
+const chime = new Audio("chime.mp3");
+chime.preload = "auto";
 
-    if (error) {
-      console.error("Insert failed:", error);
-      alert("Failed to update message.");
-    }
-  };
+/* =====================
+   CONTROLLER ACTION
+===================== */
+window.setMessage = async function(title, text) {
+  const { error } = await db
+    .from("event_state")
+    .update({
+      title: title,
+      message: text,
+      updated_at: new Date().toISOString()
+    })
+    .eq("id", 1);
 
-  /********************
-   * UI UPDATE
-   ********************/
-  function updateUI(data) {
-    document.getElementById("title").innerText = data.title;
-    document.getElementById("message").innerText = data.message;
-    document.getElementById("footer").innerText =
-      "Updated at " +
-      new Date(data.updated_at).toLocaleTimeString();
+  if (error) {
+    alert("Failed to update");
+    console.error(error);
   }
+};
 
-  /********************
-   * INITIAL LOAD
-   ********************/
-  async function loadLatest() {
-    const { data, error } = await db
-      .from("event_state")
-      .select("*")
-      .order("updated_at", { ascending: false })
-      .limit(1);
+/* =====================
+   UI UPDATE
+===================== */
+function updateUI(data, playSound = false) {
+  document.getElementById("title").innerText = data.title;
+  document.getElementById("message").innerText = data.message;
+  document.getElementById("footer").innerText =
+    "Updated at " + new Date(data.updated_at).toLocaleTimeString();
 
-    if (!error && data.length) {
-      updateUI(data[0]);
-    }
+  if (playSound) {
+    chime.currentTime = 0;
+    chime.play().catch(() => {});
   }
+}
 
-  loadLatest();
+/* =====================
+   INITIAL LOAD
+===================== */
+async function loadInitial() {
+  const { data } = await db
+    .from("event_state")
+    .select("*")
+    .eq("id", 1)
+    .single();
 
-  /********************
-   * REALTIME LISTENER
-   ********************/
-  const channel = db
-    .channel("event-updates")
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "event_state"
-      },
-      payload => {
-        console.log("Realtime update:", payload);
-        updateUI(payload.new);
-      }
-    )
-    .subscribe(status => {
-      console.log("Realtime status:", status);
-    });
+  if (data) updateUI(data);
+}
+
+loadInitial();
+
+/* =====================
+   REALTIME
+===================== */
+db.channel("event-live")
+  .on(
+    "postgres_changes",
+    {
+      event: "UPDATE",
+      schema: "public",
+      table: "event_state",
+      filter: "id=eq.1"
+    },
+    payload => {
+      updateUI(payload.new, true);
+    }
+  )
+  .subscribe();
 </script>
   
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
