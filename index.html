@@ -144,25 +144,35 @@ loadInitial();
 /* =====================
    REALTIME
 ===================== */
-db.channel("event-live")
-  .on(
-    "postgres_changes",
-    {
-      event: "UPDATE",
-      schema: "public",
-      table: "event_state",
-      filter: "id=eq.1"
-    },
-    payload => {
-      updateUI(payload.new, true);
-    }
-  )
+/* =====================
+   AUTO REFRESH (POLLING)
+===================== */
+let lastUpdate = null;
+
+async function pollForChanges() {
+  const { data } = await db
+    .from("event_state")
+    .select("*")
+    .eq("id", 1)
+    .single();
+
+  if (!data) return;
+
+  if (lastUpdate !== data.updated_at) {
+    updateUI(data, lastUpdate !== null);
+    lastUpdate = data.updated_at;
+  }
+}
+
+// start polling
+setInterval(pollForChanges, 3000);
   .subscribe();
 </script>
   
   <script src="script.js"></script>
 </body>
 </html>
+
 
 
 
